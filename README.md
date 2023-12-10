@@ -15,7 +15,7 @@ Modelos de Tratamiento de tumores con Runge Kutta de orden 4:
 + Modelo de Efecto Proporcional con ecuación de Hill (logkill-Hill4.f90)
 + Modelo de Efecto Proporcional con Resistencia a los Fármacos (logkillResistencia4.f90)
 + Modelo de Norton-Simon (norton4.f90)
-+ Modelo Antiogenesis ---
++ Modelo Antiangiogenesis ---
 + Modelo de Stepanova (stepanova4.f90)
 
 Codigos gnuplot para generar graficos en formato png automaticamente a partir de los archivos de datos (*.dat) generados en fortran, estos son los mismos para RK2 y RK4:
@@ -24,5 +24,5 @@ Codigos gnuplot para generar graficos en formato png automaticamente a partir de
 + Modelo de Efecto Proporcional con ecuación de Hill (logkill-H.p)
 + Modelo de Efecto Proporcional con Resistencia a los Fármacos (resistencia.p)
 + Modelo de Norton-Simon (norton.p)
-+ Modelo Antiogenesis ---
++ Modelo Antiangiogenesis ---
 + Modelo de Stepanova (nova.p)
