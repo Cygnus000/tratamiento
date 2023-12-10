@@ -1,4 +1,4 @@
-# tratamiento
+# Tratamiento
 
 Codigos fortran 90 que implementan el metodo Runge Kutta de orden 2 para resolver Sistemas de Ecuaciones Diferenciales Ordinarias (EDOs) de diferentes modelos de tratamiento de tumores. Los modelos resueltos son:
 
@@ -9,7 +9,7 @@ Codigos fortran 90 que implementan el metodo Runge Kutta de orden 2 para resolve
 + Modelo Antiogenesis ---
 + Modelo de Stepanova (stepanova.f90)
 
-Modelos de Crecimiento de tumores con Runge Kutta de orden 4:
+Modelos de Tratamiento de tumores con Runge Kutta de orden 4:
 
 + Modelo de Efecto Proporcional (logkill4.f90)
 + Modelo de Efecto Proporcional con ecuación de Hill (logkill-Hill4.f90)
