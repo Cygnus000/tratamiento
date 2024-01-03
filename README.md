@@ -30,4 +30,4 @@ Codigos gnuplot para generar graficos en formato png automaticamente a partir de
 + Modelo Antiangiogenesis ---
 + Modelo de Stepanova (nova.p)
 
-![Modelo log-kill]([url completa de la imagen](https://github.com/Cygnus000/tratamiento/blob/main/logkill-H.png))
+![Modelo log-kill](https://github.com/Cygnus000/tratamiento/blob/main/logkill-H.png)
