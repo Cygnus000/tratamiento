@@ -53,10 +53,10 @@ contains
         real(qp)             :: k1(N_equ), k2(N_equ)
         real(qp)             :: k3(N_equ), k4(N_equ)   
 
-        k1 = dt * f( r,            t                )
+        k1 = dt * f( r            , t             )
         k2 = dt * f( r + 0.50 * k1, t + 0.50 * dt )
         k3 = dt * f( r + 0.50 * k2, t + 0.50 * dt )
-        k4 = dt * f( r + k3        , t + dt         )
+        k4 = dt * f( r + k3       , t + dt        )
 
         rk4 = ( k1 + ( 2.00 * k2 ) + ( 2.00 * k3 ) + k4 ) / 6.00
     end function rk4
