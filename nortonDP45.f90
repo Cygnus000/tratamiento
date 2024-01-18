@@ -59,8 +59,11 @@ contains
 
         u = r(1)
         v = r(2)
-        !f(1) = g*u*log(x_max/u)-a*far*u
-        f(1) = g*u*(1._qp-u/x_max)-a*far*u
+        if( u .ne. 0._qp ) then
+        f(1) = g*u*log(x_max/u)-a*far*u
+        else
+        f(1) = g*u*log(x_max/0.01)-a*far*u
+        endif
         f(2) = a*far*u-d*v
         
     end function f
