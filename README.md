@@ -19,7 +19,12 @@ Modelos de Tratamiento de tumores con Runge Kutta de orden 4:
 + Modelo de Stepanova (stepanova4.f90)
 
 Modelos de Tratamiento de tumores con Dormand-Prince:
-+ Modelo de Norton-Simon (nortonDP45.f90)
++ Modelo de Efecto Proporcional (logkill.f90)
++ Modelo de Efecto Proporcional con ecuación de Hill (logkill-Hill.f90)
++ Modelo de Efecto Proporcional con Resistencia a los Fármacos (logkillResistencia.f90)
++ Modelo de Norton-Simon (norton.f90)
++ Modelo Antiogenesis ---
++ Modelo de Stepanova (stepanova.f90)
 
 Codigos gnuplot para generar graficos en formato png automaticamente a partir de los archivos de datos (*.dat) generados en fortran, estos son los mismos para RK2 y RK4:
 
