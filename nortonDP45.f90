@@ -2,38 +2,40 @@ program norton
     use, intrinsic :: iso_fortran_env, only: qp=>real128
     implicit none
     !valores iniciales
-    real(qp), parameter :: x10 = 30.0q0
-    real(qp), parameter :: x20 = 0.0q0
-    real(qp), parameter :: g = 0.1q0
-    real(qp), parameter :: d = 0.04q0
-    real(qp), parameter :: a = 0.1q0
-    real(qp), parameter :: x_max = 40.0q0
-    real(qp), parameter :: t0 = 0.0q0
-    real(qp), parameter :: t_max = 100.0q0
+    real(qp), parameter :: x10 = 30.0_qp
+    real(qp), parameter :: x20 = 0.0_qp
+    real(qp), parameter :: g = 0.1_qp
+    real(qp), parameter :: d = 0.04_qp
+    real(qp), parameter :: a = 0.1_qp
+    real(qp), parameter :: x_max = 40.0_qp
+    real(qp), parameter :: t0 = 0.0_qp
+    real(qp), parameter :: t_max = 100.0_qp
     !parametros iniciales
-    real(qp), parameter :: tinny = 0.001
-    real(qp), parameter :: max_steps = 300
+    real(qp), parameter :: tinny = 0.e-30_qp
+    integer , parameter :: max_steps = 10000
     integer , parameter :: N_equ = 2    ! Numero de ecuaciones
-    real(qp) :: dt = 0.5q0
-    real(qp) :: yscal = 0.0q0
-    real(qp) :: step = 0.0q0
-    real(qp) :: dt_next = 0.0q0
+    integer  :: step = 0
+    real(qp) :: dt = 0.05_qp
+    real(qp) :: yscal = 0.0_qp
+    real(qp) :: dt_next = 0.0_qp
     real(qp) :: t, farmaco, x1, x2
-    real(qp) :: r(N_equ), temp(N_equ)
+    real(qp) :: r(N_equ), temp(N_equ), tmp(N_equ)
 !**********************************************************************
     t = t0                                          ! valores iniciales
     r = [ x10, x20 ]                                
 !**********************************************************************
-    do while(t < t_max .and. step<max_steps)              ! resolviendo
+    do while( t < t_max .and. step < max_steps )          ! resolviendo
         step=step+1
         
         if ((t + dt) > t_max) then
                dt = t_max-t
         endif
-        
-        call adapt(r,t,farmaco,dt,dt_next)
-        
-        farmaco = 30.0q0*(sqrt(t)/(sqrt(10.0q0)+sqrt(t)))
+        call adaptativo(r,t,farmaco,dt,dt_next,tmp)
+        t=t+dt
+        r=r+tmp
+        dt=dt_next
+        !print*,'dt',dt
+        farmaco = 30.0_qp*(sqrt(t)/(sqrt(10.0_qp)+sqrt(t)))
         x1 = r(1)
         x2 = r(2)
         
@@ -42,6 +44,7 @@ program norton
         print*,    t, x1+x2, x1, x2, farmaco
         
     end do
+    print*,'terminadon en ',step,'pasos.'
     close(1) 
     call system('gnuplot -c norton.p')
 !**********************************************************************
@@ -49,28 +52,27 @@ contains
 !**********************************************************************
     pure function f(r, t, far) ! Aqui se colocan las ecuaciones a resol
         real(qp), intent(in) :: r(N_equ) ! Valores
-        real(qp), intent(in) :: t    ! Paso
-        real(qp), intent(in) :: far
+        real(qp), intent(in) :: t        ! Tiempo
+        real(qp), intent(in) :: far      ! Farmaco
         real(qp)             :: f(N_equ)
         real(qp)             :: u,v
 
         u = r(1)
         v = r(2)
-
-        f(1) = g*u*log(x_max/u)-a*far*u
+        !f(1) = g*u*log(x_max/u)-a*far*u
+        f(1) = g*u*(1._qp-u/x_max)-a*far*u
         f(2) = a*far*u-d*v
         
     end function f
 !**********************************************************************
-    function dp45(r, t, far, dt, error_global)
-    real(qp), intent(in)    :: r(N_equ) ! Valores
-    real(qp), intent(in)    :: t    ! Paso
-    real(qp), intent(in)    :: far  !funcion cantidad farmaco
-    real(qp), intent(in)    :: dt   ! Tamano de paso
-    real(qp), intent(inout) :: error_global
-    real(qp) :: xerr(N_equ), dp45(N_equ)
-    real(qp) :: k1(N_equ), k2(N_equ), k3(N_equ), k4(N_equ)
-    real(qp) :: k5(N_equ), k6(N_equ), k7(N_equ)
+    subroutine dopri45(r, t, far, dt, errores, ytemp)
+    real(qp), intent(in)  :: r(N_equ) ! Valores
+    real(qp), intent(in)  :: t    ! Paso
+    real(qp), intent(in)  :: far  ! Farmaco
+    real(qp), intent(in)  :: dt   ! Tamano de paso
+    real(qp), intent(out) :: errores(N_equ),ytemp(N_equ)
+    real(qp) :: k1(N_equ),k2(N_equ),k3(N_equ),k4(N_equ)
+    real(qp) :: k5(N_equ),k6(N_equ),k7(N_equ)
     ! parametros de tiempo
     real(qp),parameter :: a2 =  1.0_qp / 5.0_qp
     real(qp),parameter :: a3 =  3.0_qp / 10.0_qp
@@ -117,53 +119,62 @@ contains
     real(qp),parameter :: e5  =-17253.0_qp/339200.0_qp !c5 - d5
     real(qp),parameter :: e6  = 22.0_qp/525.0_qp       !c6 - d6
     real(qp),parameter :: e7  =-1.0_qp/40.0_qp         !   - d7
+    
+     k1 = dt*f(r                                        ,t        ,far)
+     k2 = dt*f(r + ( b21*k1                            ),t + a2*dt,far)
+     k3 = dt*f(r + ( b31*k1 + b32*k2                   ),t + a3*dt,far)
+     k4 = dt*f(r + ( b41*k1 + b42*k2 + b43*k3          ),t + a4*dt,far)
+     k5 = dt*f(r + ( b51*k1 + b52*k2 + b53*k3 + b54*k4 ),t + a5*dt,far)
+     k6 = dt*f(r + ( b61*k1 + b62*k2 + b63*k3 + b64*k4 + b65*k5 ),t + dt,far)
+     k7 = dt*f(r + ( b71*k1 + b73*k3 + b74*k4 + b75*k5 + b76*k6 ),t + dt,far)
 
-        k1 = dt*f(r                                                        ,t        ,far)
-        k2 = dt*f(r + (b21*k1                                             ),t + a2*dt,far)
-        k3 = dt*f(r + (b31*k1 + b32*k2                                    ),t + a3*dt,far)
-        k4 = dt*f(r + (b41*k1 + b42*k2 + b43*k3                           ),t + a4*dt,far)
-        k5 = dt*f(r + (b51*k1 + b52*k2 + b53*k3 + b54*k4                  ),t + a5*dt,far)
-        k6 = dt*f(r + (b61*k1 + b62*k2 + b63*k3 + b64*k4 + b65*k5         ),t + dt   ,far) ! paso calculado para rk4
-        k7 = dt*f(r + (b71*k1 +          b73*k3 + b74*k4 + b75*k5 + b76*k6),t + dt   ,far) ! paso calculado para rk5
+     ytemp = ( c1*k1 + c3*k3 + c4*k4 + c5*k5 + c6*k6 ) !rk4
+     errores = dt*abs( e1*k1 + e3*k3 + e4*k4 + e5*k5 + e6*k6 + e7*k7 ) ! rk5-rk4
+     !ytemp = ( d1*k1 + d3*k3 + d4*k4 + d5*k5 + d6*k6 +d7*k7) !rk5
+     !errores = dt*abs( e1*k1 + e3*k3 + e4*k4 + e5*k5 + e6*k6 + e7*k7 ) ! rk5-rk4
 
-        dp45 = ( c1*k1 + c3*k3 + c4*k4 + c5*k5 + c6*k6 ) !rk4
-        xerr = abs( e1*k1 + e3*k3 + e4*k4 + e5*k5 + e6*k6 + e7*k7 ) ! rk5-rk4
-        error_global = maxval(xerr)
-
-    end function dp45
+    end subroutine dopri45
 !**********************************************************************
-    subroutine adapt(r,t,far,dt,dt_next)
-    real(qp), intent(inout) :: r(N_equ) ! Valores
-    real(qp), intent(inout) :: t    ! Paso
-    real(qp), intent(in)    :: far  !funcion cantidad farmaco
+    subroutine adaptativo(r,t,far,dt,dt_next,tmp)
+    real(qp), intent(in) :: r(N_equ) ! Valores
+    real(qp), intent(in) :: t    ! Paso
+    real(qp), intent(in) :: far  !funcion cantidad farmaco
     real(qp), intent(inout) :: dt   ! Tamano de paso
-    real(qp), intent(inout) :: dt_next
-    real(qp) :: yscal = 0.0q0
-    real(qp), parameter :: safety = 0.9q0
-    real(qp), parameter :: econ = 0.000189q0
-    real(qp), parameter :: eps = 0.00005q0
-    real(qp) :: error_global = 0.0q0
-    real(qp) :: ytemp(N_equ)
-    real(qp) :: emax
-    real(qp) :: dttemp
+    real(qp), intent(out) :: dt_next
+    real(qp), intent(out) :: tmp(N_equ)
+    real(qp), parameter :: safety = 0.9_qp
+    real(qp), parameter :: e_con = 1.89e-4_qp
+    real(qp), parameter :: eps = 1.e-9_qp
+    real(qp), parameter :: PGROW = -0.2_qp
+    real(qp), parameter :: PSHRNK = -0.25_qp
+    real(qp) :: errores(N_equ), ytemp(N_equ), yscal(N_equ)
+    real(qp) :: dt_temp, t_new, e_max
         
         do
-            ytemp = dp45(r,t,far,dt,error_global)
-            yscal = norm2(r)+norm2(dt*f(r, t, farmaco))+tinny
-            emax = abs(error_global/yscal/eps)
-            if (emax <= 1.0q0) exit
-            dttemp=safety*dt*emax**(-0.25q0)
-            dt=max(abs(dttemp),0.25q0*abs(dt))
-            t=t+dt
+            call dopri45(r,t,far,dt,errores,ytemp)
+            yscal = r+dt*f(r, t, farmaco)+tinny
+            e_max  = maxval(abs(errores/yscal))/eps
+            if ( e_max > 1._qp ) then
+                dt_temp=safety*dt*(e_max**PSHRNK)
+                dt=sign(max(abs(dt_temp),0.1_qp*abs(dt)),dt)
+                t_new=t+dt
+                if (t_new.eq.t) then
+                    PRINT*,'Paso demasiado pequeño en t=', t
+                    !dt=0.001_qp
+                    !exit
+                endif
+            else
+                tmp=ytemp
+                exit
+            endif
         enddo
-        if (emax > econ) then
-            dt_next=safety*dt*(emax**(-0.2q0))
-        else
-            dt_next=5.0q0*dt
-        endif
-        t=t+dt
-        r=r+ytemp
         
-    end subroutine adapt
+        if (e_max > e_con) then
+            dt_next=safety*dt*(e_max**PGROW)
+        else
+            dt_next=5.0_qp*dt
+        endif
+
+    end subroutine adaptativo
 !**********************************************************************
 end program norton
