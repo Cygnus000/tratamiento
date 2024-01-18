@@ -2,18 +2,18 @@ program stepanova
     use, intrinsic :: iso_fortran_env, only: qp=>real128
     implicit none
 
-    real(qp), parameter :: x0 = 1.0q0
-    real(qp), parameter :: z0 = 0.0q0
-    real(qp), parameter :: g = 0.6q0
-    real(qp), parameter :: x_max = 7.5q0
-    real(qp), parameter :: gama = 1.0q0
-    real(qp), parameter :: kI = 0.5q0
-    real(qp), parameter :: beta = 0.3q0
-    real(qp), parameter :: delta = 0.4q0
-    real(qp), parameter :: mu = 0.1q0
+    real(qp), parameter :: x0 = 1._qp
+    real(qp), parameter :: z0 = 0._qp
+    real(qp), parameter :: g = 0.6_qp
+    real(qp), parameter :: x_max = 7.5_qp
+    real(qp), parameter :: gama = 1.0_qp
+    real(qp), parameter :: kI = 0.5_qp
+    real(qp), parameter :: beta = 0.3_qp
+    real(qp), parameter :: delta = 0.4_qp
+    real(qp), parameter :: mu = 0.1_qp
 
-    real(qp), parameter :: t0 = 0.0q0
-    real(qp), parameter :: tmax = 100.0q0
+    real(qp), parameter :: t0 = 0.0_qp
+    real(qp), parameter :: tmax = 100.0_qp
     integer          , parameter :: N    = 10000
     real(qp), parameter :: dt = (tmax - t0) / dble(N)
     integer          , parameter :: N_equ = 2    ! Numero de ecuaciones
@@ -50,7 +50,7 @@ contains
         u = r(1)
         v = r(2)
 
-        f(1) = g * u * (1.0q0 - u/x_max) - gama * u * v
+        f(1) = g * u * (1.0_qp - u/x_max) - gama * u * v
         f(2) = kI * ( u - beta * u**2 ) * v - delta * v + mu
         
     end function f
@@ -64,11 +64,11 @@ contains
         real(qp)             :: k3(N_equ), k4(N_equ)   
 
         k1 = dt * f( r,            t                )
-        k2 = dt * f( r + 0.5q0 * k1, t + 0.5q0 * dt )
-        k3 = dt * f( r + 0.5q0 * k2, t + 0.5q0 * dt )
+        k2 = dt * f( r + 0.5_qp * k1, t + 0.5_qp * dt )
+        k3 = dt * f( r + 0.5_qp * k2, t + 0.5_qp * dt )
         k4 = dt * f( r + k3        , t + dt         )
 
-        rk4 = ( k1 + ( 2.0q0 * k2 ) + ( 2.0q0 * k3 ) + k4 ) / 6.0q0
+        rk4 = ( k1 + ( 2.0_qp * k2 ) + ( 2.0_qp * k3 ) + k4 ) / 6.0_qp
     end function rk4
 !**********************************************************************
 end program stepanova

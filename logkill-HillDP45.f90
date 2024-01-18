@@ -1,30 +1,34 @@
-program norton
+program logkillH
     use, intrinsic :: iso_fortran_env, only: qp=>real128
     implicit none
     !valores iniciales
-    real(qp), parameter :: x10 = 30._qp
-    real(qp), parameter :: x20 = 0._qp
+    real(qp), parameter :: x0 = 30.0_qp
     real(qp), parameter :: g = 0.1_qp
     real(qp), parameter :: d = 0.04_qp
-    real(qp), parameter :: a = 0.1_qp
-    real(qp), parameter :: x_max = 40._qp
-    real(qp), parameter :: t0 = 0._qp
-    real(qp), parameter :: t_max = 100._qp
+    real(qp), parameter :: t0 = 0.0_qp
+    real(qp), parameter :: t_max = 100.0_qp
     !parametros iniciales
     real(qp), parameter :: tinny = 0.e-30_qp
     integer , parameter :: max_steps = 10000
-    integer , parameter :: N_equ = 2    ! Numero de ecuaciones
+    integer , parameter :: N_equ = 1    ! Numero de ecuaciones
     integer  :: step = 0
     real(qp) :: dt = 0.05_qp
-    real(qp) :: yscal = 0._qp
-    real(qp) :: dt_next = 0._qp
+    real(qp) :: yscal = 0.0_qp
+    real(qp) :: dt_next = 0.0_qp
     real(qp) :: t, farmaco, x1, x2
     real(qp) :: r(N_equ), temp(N_equ), tmp(N_equ)
 !**********************************************************************
     t = t0                                          ! valores iniciales
-    r = [ x10, x20 ]                                
+    r = [ x0 ]                                
 !**********************************************************************
     do while( t < t_max .and. step < max_steps )          ! resolviendo
+        farmaco = 30.0_qp*(sqrt(t)/(sqrt(10.0_qp)+sqrt(t)))
+        x1 = r(1)
+        
+        open(1,file='logkill-H.dat')             ! llenando archivo
+        write(1,*) t, x1, farmaco
+        print*,    t, x1, farmaco
+
         step=step+1
         
         if ((t + dt) > t_max) then
@@ -34,19 +38,12 @@ program norton
         t=t+dt
         r=r+tmp
         dt=dt_next
-
-        farmaco = 30.0_qp*(sqrt(t)/(sqrt(10.0_qp)+sqrt(t)))
-        x1 = r(1)
-        x2 = r(2)
-        
-        open(1,file='norton.dat')             ! llenando archivo
-        write(1,*) t, x1+x2, x1, x2, farmaco
-        print*,    t, x1+x2, x1, x2, farmaco
+        !print*,'dt',dt
         
     end do
     print*,'terminadon en ',step,'pasos.'
     close(1) 
-    call system('gnuplot -c norton.p')
+    call system('gnuplot -c logkill-H.p')
 !**********************************************************************
 contains
 !**********************************************************************
@@ -55,13 +52,10 @@ contains
         real(qp), intent(in) :: t        ! Tiempo
         real(qp), intent(in) :: far      ! Farmaco
         real(qp)             :: f(N_equ)
-        real(qp)             :: u,v
+        real(qp)             :: u
 
         u = r(1)
-        v = r(2)
-        !f(1) = g*u*log(x_max/u)-a*far*u
-        f(1) = g*u*(1._qp-u/x_max)-a*far*u
-        f(2) = a*far*u-d*v
+        f(1) = g*u-d*u*far
         
     end function f
 !**********************************************************************
@@ -177,4 +171,4 @@ contains
 
     end subroutine adaptativo
 !**********************************************************************
-end program norton
+end program logkillH

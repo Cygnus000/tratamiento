@@ -1,13 +1,16 @@
-program norton
+program stepanova
     use, intrinsic :: iso_fortran_env, only: qp=>real128
     implicit none
     !valores iniciales
-    real(qp), parameter :: x10 = 30._qp
-    real(qp), parameter :: x20 = 0._qp
-    real(qp), parameter :: g = 0.1_qp
-    real(qp), parameter :: d = 0.04_qp
-    real(qp), parameter :: a = 0.1_qp
-    real(qp), parameter :: x_max = 40._qp
+    real(qp), parameter :: x0 = 1._qp
+    real(qp), parameter :: z0 = 0._qp
+    real(qp), parameter :: g = 0.6_qp
+    real(qp), parameter :: x_max = 7.5_qp
+    real(qp), parameter :: gama = 1.0_qp
+    real(qp), parameter :: kI = 0.5_qp
+    real(qp), parameter :: beta = 0.3_qp
+    real(qp), parameter :: delta = 0.4_qp
+    real(qp), parameter :: mu = 0.1_qp
     real(qp), parameter :: t0 = 0._qp
     real(qp), parameter :: t_max = 100._qp
     !parametros iniciales
@@ -22,7 +25,7 @@ program norton
     real(qp) :: r(N_equ), temp(N_equ), tmp(N_equ)
 !**********************************************************************
     t = t0                                          ! valores iniciales
-    r = [ x10, x20 ]                                
+    r = [ x0, z0 ]                                
 !**********************************************************************
     do while( t < t_max .and. step < max_steps )          ! resolviendo
         step=step+1
@@ -39,14 +42,14 @@ program norton
         x1 = r(1)
         x2 = r(2)
         
-        open(1,file='norton.dat')             ! llenando archivo
-        write(1,*) t, x1+x2, x1, x2, farmaco
-        print*,    t, x1+x2, x1, x2, farmaco
+        open(1,file='nova.dat')                      ! llenando archivo
+        write(1,*) t, x1, x2, farmaco
+        print*,    t, x1, x2, farmaco
         
     end do
     print*,'terminadon en ',step,'pasos.'
     close(1) 
-    call system('gnuplot -c norton.p')
+    call system('gnuplot -c nova.p')
 !**********************************************************************
 contains
 !**********************************************************************
@@ -59,9 +62,9 @@ contains
 
         u = r(1)
         v = r(2)
-        !f(1) = g*u*log(x_max/u)-a*far*u
-        f(1) = g*u*(1._qp-u/x_max)-a*far*u
-        f(2) = a*far*u-d*v
+
+        f(1) = g * u * (1.0_qp - u/x_max) - gama * u * v
+        f(2) = kI * ( u - beta * u**2 ) * v - delta * v + mu
         
     end function f
 !**********************************************************************
@@ -177,4 +180,4 @@ contains
 
     end subroutine adaptativo
 !**********************************************************************
-end program norton
+end program stepanova

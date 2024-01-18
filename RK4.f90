@@ -17,7 +17,7 @@ program norton
 
     integer  :: i
     real(qp) :: r(N_equ)
-    real(qp) :: t(N), x1(N), x2(N) , farmaco(N)
+    real(qp) :: t(N), x1(N), x2(N), farmaco(N)
 !**********************************************************************
     t = [ ( dt * i, i = 1, N ) ]             ! llenando vector temporal
 !**********************************************************************
@@ -51,10 +51,10 @@ contains
 
         f(1) = g*u*log(x_max/u)-a*far*u
         f(2) = a*far*u-d*v
-        
+      
     end function f
 !**********************************************************************
-    pure function rk4(r, t, far, dt)                    ! Runge-Kutta 4
+     function rk4(r, t, far, dt)                        ! Runge-Kutta 4
         real(qp), intent(in) :: r(N_equ) ! Valores
         real(qp), intent(in) :: t    ! Paso
         real(qp), intent(in) :: far  !funcion cantidad farmaco
@@ -63,10 +63,10 @@ contains
         real(qp)             :: k1(N_equ), k2(N_equ)
         real(qp)             :: k3(N_equ), k4(N_equ)   
 
-        k1 = dt * f( r,            t               ,  far )
+        k1 = dt * f( r              , t              ,  far )
         k2 = dt * f( r + 0.5_qp * k1, t + 0.5_qp * dt,  far )
         k3 = dt * f( r + 0.5_qp * k2, t + 0.5_qp * dt,  far )
-        k4 = dt * f( r + k3        , t + dt        ,  far )
+        k4 = dt * f( r + k3         , t + dt         ,  far )
 
         rk4 = ( k1 + ( 2._qp * k2 ) + ( 2._qp * k3 ) + k4 ) / 6._qp
     end function rk4

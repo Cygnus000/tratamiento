@@ -5,5 +5,5 @@ set title "Modelo Efecto Proporcional"
 set xlabel "Tiempo (d)"
 set ylabel "Concentración (celulas/litro  mg/litro)"
 set grid
-plot "logkill.dat" w l lt 6 lw 5 title "Carga Tumoral", "logkill.dat" u 1:3 w l lt 1 lw 5 title "Fármaco"
+plot "logkill.dat" w l lt 6 lw 6 title "Carga Tumoral", "logkill.dat" u 1:3 w l lt 1 lw 5 title "Fármaco"
 
