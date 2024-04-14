@@ -2,78 +2,71 @@ program norton
     use, intrinsic :: iso_fortran_env, only: qp=>real128
     implicit none
     !valores iniciales
-    real(qp), parameter :: x10 = 30._qp
-    real(qp), parameter :: x20 = 0._qp
+    real(qp), parameter :: x10 = 30.0_qp
+    real(qp), parameter :: x20 = 0.0_qp
     real(qp), parameter :: g = 0.1_qp
     real(qp), parameter :: d = 0.04_qp
     real(qp), parameter :: a = 0.1_qp
-    real(qp), parameter :: x_max = 40._qp
-    real(qp), parameter :: t0 = 0._qp
-    real(qp), parameter :: t_max = 100._qp
+    real(qp), parameter :: x_max = 40.0_qp
+    real(qp), parameter :: t0 = 0.0_qp
+    real(qp), parameter :: t_max = 100.0_qp
     !parametros iniciales
-    real(qp), parameter :: tinny = 0.e-30_qp
+    real(qp), parameter :: tinny = 0.0e-30_qp
     integer , parameter :: max_steps = 10000
     integer , parameter :: N_equ = 2    ! Numero de ecuaciones
     integer  :: step = 0
     real(qp) :: dt = 0.05_qp
-    real(qp) :: yscal = 0._qp
-    real(qp) :: dt_next = 0._qp
+    real(qp) :: dt_next = 0.0_qp
     real(qp) :: t, farmaco, x1, x2
-    real(qp) :: r(N_equ), temp(N_equ), tmp(N_equ)
+    real(qp) :: r(N_equ), tmp(N_equ)
 !**********************************************************************
     t = t0                                          ! valores iniciales
     r = [ x10, x20 ]
-        open(1,file='norton.dat')             ! llenando archivo
-        write(1,*) t, r(1)+r(2), r(1), r(2), farmaco
-        print*,    t, r(1)+r(2), r(1), r(2), farmaco                          
+        open(1,file='norton.dat')                    ! llenando archivo
 !**********************************************************************
-    do while( t < t_max .and. step < max_steps )          ! resolviendo
-        step=step+1
-        
-        if ((t + dt) > t_max) then
-               dt = t_max-t
-        endif
-        call adaptativo(r,t,farmaco,dt,dt_next,tmp)
-        t=t+dt
-        r=r+tmp
-        dt=dt_next
+    do                                                    ! resolviendo
+      write(1,*) t, r(1)+r(2), r(1), r(2), farmaco
+      print*,    t, r(1)+r(2), r(1), r(2), farmaco
 
-        farmaco = 30.0_qp*(sqrt(t)/(sqrt(10.0_qp)+sqrt(t)))
-        x1 = r(1)
-        x2 = r(2)
-        
-        write(1,*) t, x1+x2, x1, x2, farmaco
-        print*,    t, x1+x2, x1, x2, farmaco
-        
+      if( t .ge. t_max .or. step .ge. max_steps ) exit
+
+      step = step + 1
+      if ((t + dt) .gt. t_max) dt = t_max-t
+      call adaptativo(r,t,dt,dt_next,tmp)
+      t = t + dt
+      r = r + tmp
+      dt=min(dt_next,0.25_qp)
+      farmaco = 30.0_qp*(sqrt(t)/(sqrt(10.0_qp)+sqrt(t)))
+      x1 = r(1)
+      x2 = r(2)
     end do
+    close(1)
     print*,'terminadon en ',step,'pasos.'
-    close(1) 
-    call system('gnuplot -c norton.p')
+    call system('gnuplot -c norton.gplot')
 !**********************************************************************
 contains
 !**********************************************************************
-    pure function f(r, t, far) ! Aqui se colocan las ecuaciones a resol
+    pure function f(r, t) ! Aqui se colocan las ecuaciones a resol
         real(qp), intent(in) :: r(N_equ) ! Valores
         real(qp), intent(in) :: t        ! Tiempo
-        real(qp), intent(in) :: far      ! Farmaco
+        real(qp)             :: far      ! Farmaco
         real(qp)             :: f(N_equ)
         real(qp)             :: u,v
-
+        far = 30.0_qp*(sqrt(t)/(sqrt(10.0_qp)+sqrt(t)))
         u = r(1)
         v = r(2)
-        if( u .ne. 0._qp ) then
+        if( u .ne. 0.0_qp ) then
         f(1) = g*u*log(x_max/u)-a*far*u
         else
-        f(1) = g*u*log(x_max/0.01)-a*far*u
+        f(1) = 0.0_qp
         endif
         f(2) = a*far*u-d*v
-        
+
     end function f
 !**********************************************************************
-    subroutine dopri54(r, t, far, dt, errores, ytemp)
+    subroutine dopri(r, t, dt, errores, ytemp)
     real(qp), intent(in)  :: r(N_equ) ! Valores
     real(qp), intent(in)  :: t    ! Paso
-    real(qp), intent(in)  :: far  ! Farmaco
     real(qp), intent(in)  :: dt   ! Tamano de paso
     real(qp), intent(out) :: errores(N_equ),ytemp(N_equ)
     real(qp) :: k1(N_equ),k2(N_equ),k3(N_equ),k4(N_equ)
@@ -104,12 +97,6 @@ contains
     real(qp),parameter :: b74 = 125.0_qp / 192.0_qp
     real(qp),parameter :: b75 = -2187.0_qp / 6784.0_qp
     real(qp),parameter :: b76 = 11.0_qp / 84.0_qp
-    ! parametros rk4
-    real(qp),parameter :: c1  = b71
-    real(qp),parameter :: c3  = b73
-    real(qp),parameter :: c4  = b74
-    real(qp),parameter :: c5  = b75
-    real(qp),parameter :: c6  = b76
     ! parametros rk5
     real(qp),parameter :: d1  = 5179.0_qp / 57600.0_qp
     real(qp),parameter :: d3  = 7571.0_qp / 16695.0_qp
@@ -124,47 +111,44 @@ contains
     real(qp),parameter :: e5  =-17253.0_qp/339200.0_qp !c5 - d5
     real(qp),parameter :: e6  = 22.0_qp/525.0_qp       !c6 - d6
     real(qp),parameter :: e7  =-1.0_qp/40.0_qp         !   - d7
-    
-     k1 = dt*f(r                                        ,t        ,far)
-     k2 = dt*f(r + ( b21*k1                            ),t + a2*dt,far)
-     k3 = dt*f(r + ( b31*k1 + b32*k2                   ),t + a3*dt,far)
-     k4 = dt*f(r + ( b41*k1 + b42*k2 + b43*k3          ),t + a4*dt,far)
-     k5 = dt*f(r + ( b51*k1 + b52*k2 + b53*k3 + b54*k4 ),t + a5*dt,far)
-     k6 = dt*f(r + ( b61*k1 + b62*k2 + b63*k3 + b64*k4 + b65*k5 ),t + dt,far)
-     k7 = dt*f(r + ( b71*k1 + b73*k3 + b74*k4 + b75*k5 + b76*k6 ),t + dt,far)
 
-     !ytemp = ( c1*k1 + c3*k3 + c4*k4 + c5*k5 + c6*k6 ) !rk4
-     errores = dt*abs( e1*k1 + e3*k3 + e4*k4 + e5*k5 + e6*k6 + e7*k7 ) ! rk5-rk4
+     k1 = dt*f(r                                        ,t        )
+     k2 = dt*f(r + ( b21*k1                            ),t + a2*dt)
+     k3 = dt*f(r + ( b31*k1 + b32*k2                   ),t + a3*dt)
+     k4 = dt*f(r + ( b41*k1 + b42*k2 + b43*k3          ),t + a4*dt)
+     k5 = dt*f(r + ( b51*k1 + b52*k2 + b53*k3 + b54*k4 ),t + a5*dt)
+     k6 = dt*f(r + ( b61*k1 + b62*k2 + b63*k3 + b64*k4 + b65*k5 ),t + dt)
+     k7 = dt*f(r + ( b71*k1 + b73*k3 + b74*k4 + b75*k5 + b76*k6 ),t + dt)
+
      ytemp = ( d1*k1 + d3*k3 + d4*k4 + d5*k5 + d6*k6 +d7*k7) !rk5
+     errores = dt*abs( e1*k1 + e3*k3 + e4*k4 + e5*k5 + e6*k6 + e7*k7 ) ! rk5-rk4
 
-    end subroutine dopri54
+    end subroutine dopri
 !**********************************************************************
-    subroutine adaptativo(r,t,far,dt,dt_next,tmp)
+    subroutine adaptativo(r,t,dt,dt_next,tmp)
     real(qp), intent(in) :: r(N_equ) ! Valores
     real(qp), intent(in) :: t    ! Paso
-    real(qp), intent(in) :: far  !funcion cantidad farmaco
     real(qp), intent(inout) :: dt   ! Tamano de paso
     real(qp), intent(out) :: dt_next
     real(qp), intent(out) :: tmp(N_equ)
     real(qp), parameter :: safety = 0.9_qp
     real(qp), parameter :: e_con = 1.89e-4_qp
-    real(qp), parameter :: eps = 1.e-9_qp
+    real(qp), parameter :: eps = 1.0e-9_qp
     real(qp), parameter :: PGROW = -0.2_qp
     real(qp), parameter :: PSHRNK = -0.25_qp
     real(qp) :: errores(N_equ), ytemp(N_equ), yscal(N_equ)
     real(qp) :: dt_temp, t_new, e_max
-        
+
         do
-            call dopri54(r,t,far,dt,errores,ytemp)
-            yscal = r+dt*f(r, t, farmaco)+tinny
+            call dopri(r,t,dt,errores,ytemp)
+            yscal = r+dt*f(r, t)+tinny
             e_max  = maxval(abs(errores/yscal))/eps
-            if ( e_max > 1._qp ) then
+            if ( e_max .gt. 1.0_qp ) then
                 dt_temp=safety*dt*(e_max**PSHRNK)
                 dt=sign(max(abs(dt_temp),0.1_qp*abs(dt)),dt)
                 t_new=t+dt
-                if (t_new.eq.t) then
+                if (t_new .eq. t) then
                     PRINT*,'Paso demasiado pequeño en t=', t
-                    !dt=0.001_qp
                     stop
                 endif
             else
@@ -172,8 +156,8 @@ contains
                 exit
             endif
         enddo
-        
-        if (e_max > e_con) then
+
+        if (e_max .gt. e_con) then
             dt_next=safety*dt*(e_max**PGROW)
         else
             dt_next=2.0_qp*dt

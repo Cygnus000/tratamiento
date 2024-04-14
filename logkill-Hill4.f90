@@ -24,7 +24,7 @@ program logkillH
         farmaco(i) = 30.0_qp*(sqrt(t(i))/(sqrt(10.0_qp)+sqrt(t(i))))
         x(i) = r(1)
 
-        r = r + rk4( r, t(i), farmaco(i), dt )
+        r = r + rk4( r, t(i), dt )
         write(1,*) t(i), x(i), farmaco(i)
         print*,    t(i), x(i), farmaco(i)
     end do
@@ -33,32 +33,31 @@ program logkillH
 !**********************************************************************
 contains
 !**********************************************************************
-    pure function f(r, t, far) ! Aqui se colocan las ecuaciones a resol
+    pure function f(r, t) ! Aqui se colocan las ecuaciones a resol
         real(qp), intent(in) :: r(N_equ) ! Valores
         real(qp), intent(in) :: t    ! Paso
-        real(qp), intent(in) :: far
+        real(qp)             :: far
         real(qp)             :: f(N_equ)
         real(qp)             :: u
-
+        far = 30.0_qp*(sqrt(t)/(sqrt(10.0_qp)+sqrt(t)))
         u = r(1)
 
         f(1) = g*u-d*u*far
 
     end function f
 !**********************************************************************
-    pure function rk4(r, t, far, dt)                    ! Runge-Kutta 4
+    pure function rk4(r, t, dt)                         ! Runge-Kutta 4
         real(qp), intent(in) :: r(N_equ) ! Valores
         real(qp), intent(in) :: t    ! Paso
-        real(qp), intent(in) :: far  !funcion cantidad farmaco
         real(qp), intent(in) :: dt   ! Tamano de paso
         real(qp)             :: rk4(N_equ)
         real(qp)             :: k1(N_equ), k2(N_equ)
         real(qp)             :: k3(N_equ), k4(N_equ)
 
-        k1 = dt * f( r              , t              ,  far )
-        k2 = dt * f( r + 0.5_qp * k1, t + 0.5_qp * dt,  far )
-        k3 = dt * f( r + 0.5_qp * k2, t + 0.5_qp * dt,  far )
-        k4 = dt * f( r + k3         , t + dt         ,  far )
+        k1 = dt * f( r              , t               )
+        k2 = dt * f( r + 0.5_qp * k1, t + 0.5_qp * dt )
+        k3 = dt * f( r + 0.5_qp * k2, t + 0.5_qp * dt )
+        k4 = dt * f( r + k3         , t + dt          )
 
         rk4 = ( k1 + ( 2.0_qp * k2 ) + ( 2.0_qp * k3 ) + k4 ) / 6.0_qp
     end function rk4

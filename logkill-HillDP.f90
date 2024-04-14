@@ -28,7 +28,7 @@ program logkillH
       step=step+1
 
       if ((t + dt) .gt. t_max) dt = t_max-t
-      call adaptativo(r,t,farmaco,dt,dt_next,tmp)
+      call adaptativo(r,t,dt,dt_next,tmp)
       t=t+dt
       r=r+tmp
       dt=min(dt_next,0.10_qp)
@@ -41,22 +41,21 @@ program logkillH
 !**********************************************************************
 contains
 !**********************************************************************
-    pure function f(r, t, far) ! Aqui se colocan las ecuaciones a resol
+    pure function f(r, t) ! Aqui se colocan las ecuaciones a resol
         real(qp), intent(in) :: r(N_equ) ! Valores
         real(qp), intent(in) :: t        ! Tiempo
-        real(qp), intent(in) :: far      ! Farmaco
+        real(qp)             :: far      ! Farmaco
         real(qp)             :: f(N_equ)
         real(qp)             :: u
-
+        far = 30.0_qp*(sqrt(t)/(sqrt(10.0_qp)+sqrt(t)))
         u = r(1)
         f(1) = g*u-d*u*far
 
     end function f
 !**********************************************************************
-    subroutine dopri(r, t, far, dt, errores, ytemp)
+    subroutine dopri(r, t, dt, errores, ytemp)
     real(qp), intent(in)  :: r(N_equ) ! Valores
     real(qp), intent(in)  :: t    ! Paso
-    real(qp), intent(in)  :: far  ! Farmaco
     real(qp), intent(in)  :: dt   ! Tamano de paso
     real(qp), intent(out) :: errores(N_equ),ytemp(N_equ)
     real(qp) :: k1(N_equ),k2(N_equ),k3(N_equ),k4(N_equ)
@@ -102,23 +101,22 @@ contains
     real(qp),parameter :: e6  = 22.0_qp/525.0_qp
     real(qp),parameter :: e7  =-1.0_qp/40.0_qp
 
-     k1 = dt*f(r                                        ,t        ,far)
-     k2 = dt*f(r + ( b21*k1                            ),t + a2*dt,far)
-     k3 = dt*f(r + ( b31*k1 + b32*k2                   ),t + a3*dt,far)
-     k4 = dt*f(r + ( b41*k1 + b42*k2 + b43*k3          ),t + a4*dt,far)
-     k5 = dt*f(r + ( b51*k1 + b52*k2 + b53*k3 + b54*k4 ),t + a5*dt,far)
-     k6 = dt*f(r + ( b61*k1 + b62*k2 + b63*k3 + b64*k4 + b65*k5 ),t + dt,far)
-     k7 = dt*f(r + ( b71*k1 + b73*k3 + b74*k4 + b75*k5 + b76*k6 ),t + dt,far)
+     k1 = dt*f(r                                        ,t        )
+     k2 = dt*f(r + ( b21*k1                            ),t + a2*dt)
+     k3 = dt*f(r + ( b31*k1 + b32*k2                   ),t + a3*dt)
+     k4 = dt*f(r + ( b41*k1 + b42*k2 + b43*k3          ),t + a4*dt)
+     k5 = dt*f(r + ( b51*k1 + b52*k2 + b53*k3 + b54*k4 ),t + a5*dt)
+     k6 = dt*f(r + ( b61*k1 + b62*k2 + b63*k3 + b64*k4 + b65*k5 ),t + dt)
+     k7 = dt*f(r + ( b71*k1 + b73*k3 + b74*k4 + b75*k5 + b76*k6 ),t + dt)
 
      ytemp = ( d1*k1 + d3*k3 + d4*k4 + d5*k5 + d6*k6 +d7*k7) !rk5
      errores = dt*abs( e1*k1 + e3*k3 + e4*k4 + e5*k5 + e6*k6 + e7*k7 ) ! rk5-rk4
 
     end subroutine dopri
 !**********************************************************************
-    subroutine adaptativo(r,t,far,dt,dt_next,tmp)
+    subroutine adaptativo(r,t,dt,dt_next,tmp)
     real(qp), intent(in) :: r(N_equ) ! Valores
     real(qp), intent(in) :: t    ! Paso
-    real(qp), intent(in) :: far  !funcion cantidad farmaco
     real(qp), intent(inout) :: dt   ! Tamano de paso
     real(qp), intent(out) :: dt_next
     real(qp), intent(out) :: tmp(N_equ)
@@ -131,8 +129,8 @@ contains
     real(qp) :: dt_temp, t_new, e_max
 
         do
-            call dopri(r,t,far,dt,errores,ytemp)
-            yscal = r+dt*f(r, t, farmaco)+tinny
+            call dopri(r,t,dt,errores,ytemp)
+            yscal = r+dt*f(r, t)+tinny
             e_max  = maxval(abs(errores/yscal))/eps
             if ( e_max .gt. 1._qp ) then
                 dt_temp=safety*dt*(e_max**PSHRNK)

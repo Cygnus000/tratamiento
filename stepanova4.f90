@@ -14,11 +14,11 @@ program stepanova
 
     real(qp), parameter :: t0 = 0.0_qp
     real(qp), parameter :: tmax = 100.0_qp
-    integer          , parameter :: N    = 10000
+    integer , parameter :: N    = 10000
     real(qp), parameter :: dt = (tmax - t0) / dble(N)
-    integer          , parameter :: N_equ = 2    ! Numero de ecuaciones
+    integer , parameter :: N_equ = 2             ! Numero de ecuaciones
 
-    integer           :: i
+    integer  :: i
     real(qp) :: r(N_equ)
     real(qp) :: t(N), x(N), z(N)
 !**********************************************************************

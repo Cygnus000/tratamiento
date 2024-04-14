@@ -2,6 +2,6 @@ set terminal epslatex #pngcairo size 1200,750 enhanced font 'Verdana,23'
 set output 'resistencia.tex'
 set title "Modelo Efecto Proporcional Con Resistencia al Fármaco"
 set xlabel "Tiempo (d)"
-set ylabel "Concentración (celulas/litro  mg/litro)"
+set ylabel "Carga tumoral, Fármaco"
 set grid
-plot "resistencia.dat" w l lt 6 lw 5 title "Carga Tumoral", "resistencia.dat" u 1:3 w l lt 1 lw 5 title "Fármaco"
+plot "resistencia.dat" w l lt 6 lw 5 title "Carga Tumoral mm", "resistencia.dat" u 1:3 w l lt 1 lw 5 title "Fármaco mg/l"
