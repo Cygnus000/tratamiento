@@ -19,18 +19,17 @@ program logkillH
 !**********************************************************************
     r = [ x0 ]                                      ! valores iniciales
 !**********************************************************************
+    open(1,file='logkill-H.dat')                 ! llenando archivo
     do i = 1, N                                           ! resolviendo
         farmaco(i) = 30.0_qp*(sqrt(t(i))/(sqrt(10.0_qp)+sqrt(t(i))))
         x(i) = r(1)
 
         r = r + rk4( r, t(i), farmaco(i), dt )
-!**********************************************************************
-        open(1,file='logkill-H.dat')                 ! llenando archivo
-          write(1,*) t(i), x(i), farmaco(i)
-          print*,    t(i), x(i), farmaco(i)
+        write(1,*) t(i), x(i), farmaco(i)
+        print*,    t(i), x(i), farmaco(i)
     end do
-    close(1) 
-    call system('gnuplot -c logkill-H.p')
+    close(1)
+    call system('gnuplot -c logkill-H.gplot')
 !**********************************************************************
 contains
 !**********************************************************************
@@ -44,7 +43,7 @@ contains
         u = r(1)
 
         f(1) = g*u-d*u*far
-        
+
     end function f
 !**********************************************************************
     pure function rk4(r, t, far, dt)                    ! Runge-Kutta 4
@@ -54,7 +53,7 @@ contains
         real(qp), intent(in) :: dt   ! Tamano de paso
         real(qp)             :: rk4(N_equ)
         real(qp)             :: k1(N_equ), k2(N_equ)
-        real(qp)             :: k3(N_equ), k4(N_equ)   
+        real(qp)             :: k3(N_equ), k4(N_equ)
 
         k1 = dt * f( r              , t              ,  far )
         k2 = dt * f( r + 0.5_qp * k1, t + 0.5_qp * dt,  far )

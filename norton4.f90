@@ -23,19 +23,18 @@ program norton
 !**********************************************************************
     r = [ x10, x20 ]                                ! valores iniciales
 !**********************************************************************
+    open(1,file='norton.dat')                    ! llenando archivo
     do i = 1, N                                           ! resolviendo
         farmaco(i) = 30._qp*(sqrt(t(i))/(sqrt(10._qp)+sqrt(t(i))))
         x1(i) = r(1)
         x2(i) = r(2)
 
         r = r + rk4( r, t(i), farmaco(i), dt )
-!**********************************************************************
-        open(1,file='norton.dat')                    ! llenando archivo
-          write(1,*) t(i), x1(i)+x2(i), x1(i), x2(i), farmaco(i)
-          print*,    t(i), x1(i)+x2(i), x1(i), x2(i), farmaco(i)
+        write(1,*) t(i), x1(i)+x2(i), x1(i), x2(i), farmaco(i)
+        print*,    t(i), x1(i)+x2(i), x1(i), x2(i), farmaco(i)
     end do
-    close(1) 
-    call system('gnuplot -c norton.p')
+    close(1)
+    call system('gnuplot -c norton.gplot')
 !**********************************************************************
 contains
 !**********************************************************************
@@ -51,7 +50,7 @@ contains
 
         f(1) = g*u*log(x_max/u)-a*far*u
         f(2) = a*far*u-d*v
-        
+
     end function f
 !**********************************************************************
     pure function rk4(r, t, far, dt)                    ! Runge-Kutta 4
@@ -61,7 +60,7 @@ contains
         real(qp), intent(in) :: dt   ! Tamano de paso
         real(qp)             :: rk4(N_equ)
         real(qp)             :: k1(N_equ), k2(N_equ)
-        real(qp)             :: k3(N_equ), k4(N_equ)   
+        real(qp)             :: k3(N_equ), k4(N_equ)
 
         k1 = dt * f( r              , t              ,  far )
         k2 = dt * f( r + 0.5_qp * k1, t + 0.5_qp * dt,  far )

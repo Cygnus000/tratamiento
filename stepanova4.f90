@@ -26,18 +26,17 @@ program stepanova
 !**********************************************************************
     r = [ x0, z0 ]                                  ! valores iniciales
 !**********************************************************************
+    open(1,file='stepanova.dat')                     ! llenando archivo
     do i = 1, N                                           ! resolviendo
         x(i) = r(1)
         z(i) = r(2)
 
         r = r + rk4( r, t(i), dt )
-!**********************************************************************
-        open(1,file='nova.dat')                      ! llenando archivo
-          write(1,*) t(i), x(i), z(i)
-          print*,    t(i), x(i), z(i)
+        write(1,*) t(i), x(i), z(i)
+        print*,    t(i), x(i), z(i)
     end do
-    close(1) 
-    call system('gnuplot -c nova.p')
+    close(1)
+    call system('gnuplot -c stepanova.gplot')
 !**********************************************************************
 contains
 !**********************************************************************
@@ -52,7 +51,7 @@ contains
 
         f(1) = g * u * (1.0_qp - u/x_max) - gama * u * v
         f(2) = kI * ( u - beta * u**2 ) * v - delta * v + mu
-        
+
     end function f
 !**********************************************************************
     pure function rk4(r, t, dt)                         ! Runge-Kutta 4
@@ -61,7 +60,7 @@ contains
         real(qp), intent(in) :: dt   ! Tamano de paso
         real(qp)             :: rk4(N_equ)
         real(qp)             :: k1(N_equ), k2(N_equ)
-        real(qp)             :: k3(N_equ), k4(N_equ)   
+        real(qp)             :: k3(N_equ), k4(N_equ)
 
         k1 = dt * f( r              , t               )
         k2 = dt * f( r + 0.5_qp * k1, t + 0.5_qp * dt )
