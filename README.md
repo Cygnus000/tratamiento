@@ -15,7 +15,7 @@ Modelos de Tratamiento de tumores con Runge Kutta de orden 4:
 + Modelo de Efecto Proporcional con ecuación de Hill (logkill-Hill4.f90)
 + Modelo de Efecto Proporcional con Resistencia a los Fármacos (logkillResistencia4.f90)
 + Modelo de Norton-Simon (norton4.f90)
-+ Modelo Antiangiogenesis ---
++ Modelo Antiangiogenesis ang4.f90
 + Modelo de Stepanova (stepanova4.f90)
 
 Modelos de Tratamiento de tumores con Dormand-Prince:
@@ -26,19 +26,20 @@ Modelos de Tratamiento de tumores con Dormand-Prince:
 + Modelo Antiogenesis ---
 + Modelo de Stepanova (stepanovaDP54.f90)
 
-Codigos gnuplot para generar graficos en formato png automaticamente a partir de los archivos de datos (*.dat) generados en fortran, estos son los mismos para RK2 y RK4:
+Codigos gnuplot para generar graficos en formato eps y latex automaticamente a partir de los archivos de datos (*.dat) generados en fortran:
 
-+ Modelo de Efecto Proporcional (logkill.p)
-+ Modelo de Efecto Proporcional con ecuación de Hill (logkill-H.p)
-+ Modelo de Efecto Proporcional con Resistencia a los Fármacos (resistencia.p)
-+ Modelo de Norton-Simon (norton.p)
-+ Modelo Antiangiogenesis ---
-+ Modelo de Stepanova (nova.p)
++ Modelo de Efecto Proporcional (logkill.gplot)
++ Modelo de Efecto Proporcional con ecuación de Hill (logkill-H.gplot)
++ Modelo de Efecto Proporcional con Resistencia a los Fármacos (resistencia.gplot)
++ Modelo de Norton-Simon (norton.gplot)
++ Modelo Antiangiogenesis (angiogenesis.gplot)
++ Modelo de Stepanova (nova.gplot)
 
 ![Modelo log-kill](https://github.com/Cygnus000/tratamiento/blob/main/logkill.png)
 ![Modelo log-kill con ecuacion de Hill](https://github.com/Cygnus000/tratamiento/blob/main/logkill-H.png)
 ![Modelo log-kill con resistencia al farmaco](https://github.com/Cygnus000/tratamiento/blob/main/resistencia.png)
 ![Modelo norton-simon](https://github.com/Cygnus000/tratamiento/blob/main/norton.png)
+![Modelo angiogenesis](https://github.com/Cygnus000/tratamiento/blob/main/angiogenesis.png)
 ![Modelo stepanova](https://github.com/Cygnus000/tratamiento/blob/main/nova.png)
 
 
